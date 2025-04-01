@@ -62,15 +62,27 @@ public class Aquatic implements Listener {
 
     private void setUnderwaterAttributes(Player player) {
         // Increase underwater movement speed
-        AttributeInstance movementSpeed = player.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
-        if (movementSpeed != null) {
-            movementSpeed.setBaseValue(0.15); // Adjust the value as needed
+        AttributeInstance waterMovementEfficiency = player.getAttribute(Attribute.WATER_MOVEMENT_EFFICIENCY);
+        if (waterMovementEfficiency != null) {
+            waterMovementEfficiency.setBaseValue(0.15); // Adjust the value as needed
         }
 
         // Increase underwater block breaking speed
-        AttributeInstance attackSpeed = player.getAttribute(Attribute.GENERIC_ATTACK_SPEED);
-        if (attackSpeed != null) {
-            attackSpeed.setBaseValue(10); // Adjust the value as needed
+        AttributeInstance submergedMiningSpeed = player.getAttribute(Attribute.SUBMERGED_MINING_SPEED);
+        if (submergedMiningSpeed != null) {
+            submergedMiningSpeed.setBaseValue(10); // Adjust the value as needed
+        }
+
+        // Set the oxygen bonus to maximum integer value
+        AttributeInstance oxygenBonus = player.getAttribute(Attribute.OXYGEN_BONUS);
+        if (oxygenBonus != null) {
+            oxygenBonus.setBaseValue(Integer.MAX_VALUE); // Set to maximum int value
+        }
+
+        // Increase fishing luck
+        AttributeInstance luck = player.getAttribute(Attribute.LUCK);
+        if (luck != null) {
+            luck.setBaseValue(10); // Adjust the value as needed
         }
     }
 }
