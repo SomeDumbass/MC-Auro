@@ -33,15 +33,5 @@ public class Aquatic implements Listener {
         if (!player.hasPermission("auro.aquatic")) {
             return;
         }
-
-        player.getAttribute(Attribute.SUBMERGED_MINING_SPEED).setBaseValue(2f);
-        player.getAttribute(Attribute.WATER_MOVEMENT_EFFICIENCY).setBaseValue(2f);
-        player.getAttribute(Attribute.SCALE).setBaseValue(1f);
-        player.getAttribute(Attribute.OXYGEN_BONUS).setBaseValue(Integer.MAX_VALUE);
-    }
-
-    @EventHandler
-    public void Projectile(ProjectileLaunchEvent event) {
-
     }
 }
