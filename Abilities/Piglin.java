@@ -1,6 +1,7 @@
 package Blink.project.Abilities;
 
 import org.bukkit.attribute.Attribute;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -8,6 +9,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
@@ -57,7 +59,6 @@ public class Piglin implements Listener {
         // Add attacker to list of cursed players
         if (!cursedPlayers.contains(attacker.getUniqueId())) {
             cursedPlayers.add(attacker.getUniqueId());
-
         }
     }
 
@@ -72,8 +73,28 @@ public class Piglin implements Listener {
     }
 
     @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        if (!isPlayerCursed(player)) {
+            return;
+        }
+
+        // Get nearby entities within 100 blocks
+        List<Entity> nearbyEntities = player.getNearbyEntities(100, 100, 100);
+
+        // Check if player has line of sight with the entities
+        for (Entity entity : nearbyEntities) {
+            if (entity.getType() == EntityType.PIGLIN || entity.getType() == EntityType.ZOMBIFIED_PIGLIN || entity.getType() == EntityType.PIGLIN_BRUTE) {
+                if (player.hasLineOfSight(entity)) {
+                    entity.setTarget(player);
+                }
+            }
+        }
+    }
+
+    @EventHandler
     public void EntityTarget(EntityTargetEvent event) {
-        if (event.getEntityType() == EntityType.PIGLIN || event.getEntityType() == EntityType.ZOMBIFIED_PIGLIN || event.getEntityType() == EntityType.PIGLIN_BRUTE) { // Add more hostile mobs as needed
+        if (event.getEntityType() == EntityType.PIGLIN || event.getEntityType() == EntityType.ZOMBIFIED_PIGLIN || event.getEntityType() == EntityType.PIGLIN_BRUTE) {
             if (event.getTarget() instanceof Player) {
                 Player player = (Player) event.getTarget();
                 if (isProtected(player)) {
@@ -86,5 +107,4 @@ public class Piglin implements Listener {
     public boolean isProtected(Player player) {
         return player.hasPermission("auro.piglin");
     }
-
 }
