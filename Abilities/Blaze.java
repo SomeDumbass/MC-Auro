@@ -2,7 +2,6 @@ package Blink.project.Abilities;
 
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,6 +12,7 @@ import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Arrays;
 import java.util.List;
@@ -53,7 +53,9 @@ public class Blaze implements Listener {
         if (event.getEntity() instanceof Player) {
             Player player = (Player) event.getEntity();
             if (isProtected(player)) {
-                if (event.getCause() == EntityDamageEvent.DamageCause.LAVA || event.getCause() == EntityDamageEvent.DamageCause.FIRE || event.getCause() == EntityDamageEvent.DamageCause.FIRE_TICK) {
+                if (event.getCause() == EntityDamageEvent.DamageCause.LAVA 
+                    || event.getCause() == EntityDamageEvent.DamageCause.FIRE 
+                    || event.getCause() == EntityDamageEvent.DamageCause.FIRE_TICK) {
                     event.setCancelled(true);
                 }
             }
@@ -67,6 +69,32 @@ public class Blaze implements Listener {
                 Player player = (Player) event.getTarget();
                 if (isProtected(player)) {
                     event.setCancelled(true);
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+
+        // Check if the player has the blaze permission
+        if (!player.hasPermission("auro.blaze")) {
+            return;
+        }
+
+        // Check if the player right-clicked with an empty hand
+        if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            if (player.getInventory().getItemInMainHand().getType() == Material.AIR) {
+                // Check if the player has enough hunger
+                if (player.getFoodLevel() >= 4) {
+                    // Launch a fireball
+                    player.launchProjectile(Fireball.class);
+
+                    // Reduce the hunger by 2 bars (4 points)
+                    player.setFoodLevel(player.getFoodLevel() - 4);
+                } else {
+                    player.sendMessage("You need at least 2 bars of hunger to use this ability!");
                 }
             }
         }
