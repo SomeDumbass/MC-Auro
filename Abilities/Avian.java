@@ -1,10 +1,10 @@
 package Blink.project.Abilities;
 
-import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,25 +16,28 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 
 public class Avian implements Listener {
 
     private final JavaPlugin plugin;
-    private final Set<UUID> highPlayers = new HashSet<>();
+    private final NamespacedKey highPlayerKey;
+    private final List<String> allowedPlayers = Arrays.asList("Goannas");
 
     public Avian(JavaPlugin plugin) {
         this.plugin = plugin;
+        this.highPlayerKey = new NamespacedKey(plugin, "highPlayer");
     }
 
-    private final List<String> allowedPlayers = Arrays.asList("Goannas");
-
     @EventHandler
-    public void Join(PlayerJoinEvent event) {
+    public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         if (allowedPlayers.contains(player.getName())) {
             player.addAttachment(plugin, "auro.avian", true);
@@ -110,35 +113,33 @@ public class Avian implements Listener {
     private static final double SMOOTHING_FACTOR = 4.0;
 
     @EventHandler
-    public void Move(PlayerMoveEvent event) {
+    public void onMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
         if (!player.hasPermission("auro.avian")) {
             return;
         }
 
-        if (player.getLocation().getY() < 30) {
+        Location playerLocation = player.getLocation();
+        PersistentDataContainer dataContainer = player.getPersistentDataContainer();
 
-            if (!highPlayers.contains(player.getUniqueId())) {
-
-                highPlayers.add(player.getUniqueId());
+        if (playerLocation.getY() < 30) {
+            if (!dataContainer.has(highPlayerKey, PersistentDataType.BYTE)) {
+                dataContainer.set(highPlayerKey, PersistentDataType.BYTE, (byte) 1);
                 new BukkitRunnable() {
                     @Override
                     public void run() {
-                        if (!highPlayers.contains(player.getUniqueId())) {
+                        if (!dataContainer.has(highPlayerKey, PersistentDataType.BYTE)) {
                             cancel();
                             return;
                         }
 
                         player.setFreezeTicks(Integer.MAX_VALUE);
-                        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.DARK_RED + "" + ChatColor.BOLD + "Critically low elevation warning"));
-
+                        player.sendActionBar(ChatColor.DARK_RED + "" + ChatColor.BOLD + "Critically low elevation warning");
                     }
                 }.runTaskTimer(plugin, 20L, 20L); // Run every 20 ticks (1 second)
-
             }
-
         } else {
-            highPlayers.remove(player.getUniqueId());
+            dataContainer.remove(highPlayerKey);
             player.setFreezeTicks(0);
         }
 
@@ -147,11 +148,10 @@ public class Avian implements Listener {
         }
 
         if (player.isGliding()) {
-
             Location eyeLocation = player.getEyeLocation();
             Vector direction = eyeLocation.getDirection().normalize();
-
             Location targetLocation = null;
+
             for (double distance = 0; distance <= MAX_RANGE; distance += 0.1) {
                 // Calculate the current position along the ray
                 Location currentLocation = eyeLocation.clone().add(direction.clone().multiply(distance));
@@ -198,7 +198,6 @@ public class Avian implements Listener {
 
             // Apply the new velocity to the player
             player.setVelocity(newVelocity);
-            player.sendMessage("set velocity");
         }
 
         if (player.isSneaking()) {
