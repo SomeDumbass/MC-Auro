@@ -2,17 +2,13 @@ package Blink.project.Abilities;
 
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.entity.EnderPearl;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Arrays;
@@ -23,11 +19,14 @@ import java.util.Set;
 public class Enderian implements Listener {
 
     private final JavaPlugin plugin;
+
     public Enderian(JavaPlugin plugin) {
         this.plugin = plugin;
     }
+
     private final List<String> allowedPlayers = Arrays.asList("Goannas");
     private final Set<Player> playersInWater = new HashSet<>();
+
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
@@ -40,9 +39,7 @@ public class Enderian implements Listener {
         }
     }
 
-
     private void teleportToCrosshair(Player player) {
-
         Block targetBlock = player.getTargetBlock(null, 125);
         if (targetBlock != null && targetBlock.getType() != Material.AIR && player.getFoodLevel() > 6) {
             Location startLocation = player.getLocation();
@@ -60,16 +57,17 @@ public class Enderian implements Listener {
     }
 
     @EventHandler
-    public void Consume(PlayerInteractEvent event) {
+    public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
 
         if (!player.hasPermission("auro.ender")) {
             return;
         }
 
-        teleportToCrosshair(player);
-
-        event.setCancelled(true);
+        if (event.getHand() == EquipmentSlot.HAND && event.getAction().isRightClick() && player.isSneaking()) {
+            teleportToCrosshair(player);
+            event.setCancelled(true);
+        }
     }
 
     @EventHandler
