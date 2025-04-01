@@ -18,13 +18,18 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 
 public class Shulker implements Listener {
 
     private final JavaPlugin plugin;
     private final Random random = new Random();
+    private final Map<UUID, Long> teleportCooldowns = new HashMap<>();
+    private static final long TELEPORT_COOLDOWN = 10000L; // 10 seconds
 
     public Shulker(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -44,11 +49,15 @@ public class Shulker implements Listener {
         }
 
         player.getAttribute(Attribute.ARMOR).setBaseValue(20f);
+        player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 200, 4)); // 10 seconds of invincibility
     }
 
     @EventHandler
-    public void EntityTarget(EntityTargetEvent event) {
-        if (event.getEntityType() == EntityType.SHULKER_BULLET || event.getEntityType() == EntityType.SHULKER) { // Add more hostile mobs as needed
+    public void onEntityTarget(EntityTargetEvent event) {
+        if (event.getEntityType() == EntityType.SHULKER_BULLET ||
+            event.getEntityType() == EntityType.SHULKER ||
+            event.getEntityType() == EntityType.CREEPER ||
+            event.getEntityType() == EntityType.ZOMBIE) { // Add more hostile mobs as needed
             if (event.getTarget() instanceof Player) {
                 Player player = (Player) event.getTarget();
                 if (isProtected(player)) {
@@ -63,8 +72,13 @@ public class Shulker implements Listener {
         if (event.getEntity() instanceof Player) {
             Player player = (Player) event.getEntity();
             if (isProtected(player)) {
-                if (random.nextInt(5) == 0) { // 1 in 5 chance
-                    teleportPlayerRandomly(player, 20);
+                long currentTime = System.currentTimeMillis();
+                long lastTeleportTime = teleportCooldowns.getOrDefault(player.getUniqueId(), 0L);
+                if (currentTime - lastTeleportTime >= TELEPORT_COOLDOWN) {
+                    if (random.nextInt(5) == 0) { // 1 in 5 chance
+                        teleportPlayerRandomly(player, 20);
+                        teleportCooldowns.put(player.getUniqueId(), currentTime);
+                    }
                 }
             }
         }
