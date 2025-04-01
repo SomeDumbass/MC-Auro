@@ -91,6 +91,44 @@ public class Slime implements Listener {
         }
     }
 
+                        @EventHandler
+public void onEntityDamage(EntityDamageEvent event) {
+    if (!(event.getEntity() instanceof Player)) {
+        return;
+    }
+
+    Player player = (Player) event.getEntity();
+    if (!player.hasPermission("auro.slime")) {
+        return;
+    }
+
+    if (event.getCause() == EntityDamageEvent.DamageCause.FALL) {
+        // Cancel the fall damage
+        event.setCancelled(true);
+
+        // Apply a bounce effect
+        player.setVelocity(player.getVelocity().setY(1.0));
+
+        // Optionally, you can play a sound or particle effect here
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_SLIME_JUMP, 1.0f, 1.0f);
+    } else {
+        double damage = event.getFinalDamage();
+        AttributeInstance scaleAttribute = player.getAttribute(Attribute.SCALE);
+
+        if (scaleAttribute != null) {
+            double currentScale = scaleAttribute.getBaseValue();
+            double newScale = currentScale - damage * 0.005;
+            scaleAttribute.setBaseValue(newScale);
+
+            // Save the new scale to persistent data
+            PersistentDataContainer data = player.getPersistentDataContainer();
+            data.set(SCALE_KEY, PersistentDataType.DOUBLE, newScale);
+        }
+
+        event.setCancelled(true);
+    }
+}
+
     public boolean isProtected(Player player) {
         return player.hasPermission("auro.slime");
     }
