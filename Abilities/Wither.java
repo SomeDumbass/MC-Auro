@@ -84,16 +84,23 @@ public class Wither implements Listener {
     }
 
     @EventHandler
-    public void EntityTarget(EntityTargetEvent event) {
-        if (event.getEntityType() == EntityType.WITHER_SKELETON) {
-            if (event.getTarget() instanceof Player) {
-                Player player = (Player) event.getTarget();
-                if (isProtected(player)) {
-                    event.setCancelled(true);
-                }
+public void EntityTarget(EntityTargetEvent event) {
+    if (event.getEntityType() == EntityType.WITHER) {
+        if (event.getTarget() instanceof Player) {
+            Player player = (Player) event.getTarget();
+            if (isProtected(player)) {
+                event.setCancelled(true);
+            }
+        }
+    } else if (event.getEntityType() == EntityType.WITHER_SKELETON) {
+        if (event.getTarget() instanceof Player) {
+            Player player = (Player) event.getTarget();
+            if (isProtected(player)) {
+                event.setCancelled(true);
             }
         }
     }
+}
 
     public boolean isProtected(Player player) {
         return player.hasPermission("auro.wither");
